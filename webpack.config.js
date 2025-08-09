@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './trucking_business_dashboard.tsx',
+  entry: './src/index.tsx',
   module: {
     rules: [
       {
