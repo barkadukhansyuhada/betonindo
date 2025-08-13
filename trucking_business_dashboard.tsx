@@ -3,48 +3,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const TruckingDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [calculatorInputs, setCalculatorInputs] = useState({
-    material: '',
-    volume: '',
-    distance: ''
-  });
-  const [calculatorResult, setCalculatorResult] = useState<number | null>(null);
-
-  const handleCalculatorInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setCalculatorInputs(prevInputs => ({
-      ...prevInputs,
-      [name]: value
-    }));
-  };
-
-  const calculatePrice = () => {
-    const { material, volume, distance } = calculatorInputs;
-    if (!material || !volume || !distance) {
-      alert('Mohon lengkapi semua input kalkulator.');
-      return;
-    }
-
-    const selectedMaterial = operasionalData.find(item => item.jenis === material);
-    if (!selectedMaterial) {
-      alert('Material tidak ditemukan.');
-      return;
-    }
-
-    const volumeNum = parseFloat(volume);
-    const distanceNum = parseFloat(distance);
-
-    // Asumsi biaya transportasi per KM per kubik. Ini bisa disesuaikan.
-    // Untuk contoh, kita asumsikan 1000 IDR per KM per kubik.
-    const costPerKmPerCubic = 1000;
-
-    const materialPrice = selectedMaterial.hargaJual * volumeNum;
-    const transportationCost = distanceNum * volumeNum * costPerKmPerCubic;
-
-    const totalPrice = materialPrice + transportationCost;
-    setCalculatorResult(totalPrice);
-  };
-
 
   // Data dari tabel
   const modalData = [
@@ -67,6 +25,39 @@ const TruckingDashboard = () => {
     { jenis: "Batu Split", jumlahTruck: 10, hargaBeli: 220000, hargaJual: 240000, kubikPerTruck: 25 },
     { jenis: "Pasir", jumlahTruck: 10, hargaBeli: 235000, hargaJual: 260000, kubikPerTruck: 25 }
   ];
+
+  const [calculatorInputs, setCalculatorInputs] = useState({
+    material: '',
+    volume: ''
+  });
+  const [calculatorResult, setCalculatorResult] = useState<number | null>(null);
+
+  const handleCalculatorInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setCalculatorInputs(prevInputs => ({
+      ...prevInputs,
+      [name]: value
+    }));
+  };
+
+  const calculatePrice = () => {
+    const { material, volume } = calculatorInputs;
+    if (!material || !volume) {
+      alert('Mohon lengkapi semua input kalkulator.');
+      return;
+    }
+
+    const selectedMaterial = operasionalData.find(item => item.jenis === material);
+    if (!selectedMaterial) {
+      alert('Material tidak ditemukan.');
+      return;
+    }
+
+    const volumeNum = parseFloat(volume);
+
+    const totalPrice = selectedMaterial.hargaJual * volumeNum;
+    setCalculatorResult(totalPrice);
+  };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -368,18 +359,6 @@ const TruckingDashboard = () => {
                   onChange={handleCalculatorInputChange}
                 />
               </div>
-              <div>
-                <label htmlFor="distance" className="block text-sm font-medium text-gray-700">Jarak (KM)</label>
-                <input
-                  type="number"
-                  id="distance"
-                  name="distance"
-                  className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  placeholder="Masukkan jarak"
-                  value={calculatorInputs.distance}
-                  onChange={handleCalculatorInputChange}
-                />
-              </div>
             </div>
             <button
               onClick={calculatePrice}
@@ -393,7 +372,7 @@ const TruckingDashboard = () => {
                 <h4 className="text-lg font-semibold text-blue-800 mb-3">Estimasi Harga:</h4>
                 <p className="text-3xl font-bold text-blue-900">{formatCurrency(calculatorResult)}</p>
                 <p className="text-sm text-gray-600 mt-2">
-                  *Estimasi ini berdasarkan harga jual per kubik material dan asumsi biaya transportasi per KM.
+                  *Estimasi ini berdasarkan harga jual per kubik material.
                 </p>
               </div>
             )}
