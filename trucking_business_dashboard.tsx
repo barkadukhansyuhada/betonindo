@@ -3,6 +3,48 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const TruckingDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [calculatorInputs, setCalculatorInputs] = useState({
+    material: '',
+    volume: '',
+    distance: ''
+  });
+  const [calculatorResult, setCalculatorResult] = useState<number | null>(null);
+
+  const handleCalculatorInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setCalculatorInputs(prevInputs => ({
+      ...prevInputs,
+      [name]: value
+    }));
+  };
+
+  const calculatePrice = () => {
+    const { material, volume, distance } = calculatorInputs;
+    if (!material || !volume || !distance) {
+      alert('Mohon lengkapi semua input kalkulator.');
+      return;
+    }
+
+    const selectedMaterial = operasionalData.find(item => item.jenis === material);
+    if (!selectedMaterial) {
+      alert('Material tidak ditemukan.');
+      return;
+    }
+
+    const volumeNum = parseFloat(volume);
+    const distanceNum = parseFloat(distance);
+
+    // Asumsi biaya transportasi per KM per kubik. Ini bisa disesuaikan.
+    // Untuk contoh, kita asumsikan 1000 IDR per KM per kubik.
+    const costPerKmPerCubic = 1000;
+
+    const materialPrice = selectedMaterial.hargaJual * volumeNum;
+    const transportationCost = distanceNum * volumeNum * costPerKmPerCubic;
+
+    const totalPrice = materialPrice + transportationCost;
+    setCalculatorResult(totalPrice);
+  };
+
 
   // Data dari tabel
   const modalData = [
@@ -67,7 +109,8 @@ const TruckingDashboard = () => {
             { id: 'overview', label: 'Overview' },
             { id: 'profitability', label: 'Profitabilitas' },
             { id: 'operations', label: 'Operasional' },
-            { id: 'profit-sharing', label: 'Bagi Hasil' }
+            { id: 'profit-sharing', label: 'Bagi Hasil' },
+            { id: 'price-calculator', label: 'Kalkulator Harga' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -290,6 +333,70 @@ const TruckingDashboard = () => {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Price Calculator Tab */}
+        {activeTab === 'price-calculator' && (
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-xl font-semibold mb-4">Kalkulator Harga Material</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="materialType" className="block text-sm font-medium text-gray-700">Jenis Material</label>
+                <select
+                  id="materialType"
+                  name="materialType"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  value={calculatorInputs.material}
+                  onChange={handleCalculatorInputChange}
+                >
+                  <option value="">Pilih Material</option>
+                  {operasionalData.map((item) => (
+                    <option key={item.jenis} value={item.jenis}>{item.jenis}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="volume" className="block text-sm font-medium text-gray-700">Volume (Kubik)</label>
+                <input
+                  type="number"
+                  id="volume"
+                  name="volume"
+                  className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  placeholder="Masukkan volume"
+                  value={calculatorInputs.volume}
+                  onChange={handleCalculatorInputChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="distance" className="block text-sm font-medium text-gray-700">Jarak (KM)</label>
+                <input
+                  type="number"
+                  id="distance"
+                  name="distance"
+                  className="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  placeholder="Masukkan jarak"
+                  value={calculatorInputs.distance}
+                  onChange={handleCalculatorInputChange}
+                />
+              </div>
+            </div>
+            <button
+              onClick={calculatePrice}
+              className="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold"
+            >
+              Hitung Harga
+            </button>
+
+            {calculatorResult && (
+              <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="text-lg font-semibold text-blue-800 mb-3">Estimasi Harga:</h4>
+                <p className="text-3xl font-bold text-blue-900">{formatCurrency(calculatorResult)}</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  *Estimasi ini berdasarkan harga jual per kubik material dan asumsi biaya transportasi per KM.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
