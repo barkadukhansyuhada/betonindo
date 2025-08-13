@@ -1,36 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+
+// Data dari tabel
+const modalData = [
+  { jenis: "Batu Split", modal: 385000000, pemasukan: 420000000, keuntungan: 35000000 },
+  { jenis: "Pasir", modal: 411250000, pemasukan: 455000000, keuntungan: 43750000 }
+];
+
+const overviewData = [
+  { kategori: "Modal Kebutuhan", nilai: 796250000 },
+  { kategori: "Pemasukan", nilai: 875000000 },
+  { kategori: "Keuntungan Bersih", nilai: 78750000 }
+];
+
+const profitSharingData = [
+  { name: "Investor", value: 39375000, percentage: 50 },
+  { name: "Pelaksana", value: 39375000, percentage: 50 }
+];
+
+const operasionalData = [
+  { jenis: "Batu Split", jumlahTruck: 10, hargaBeli: 220000, hargaJual: 240000, kubikPerTruck: 25 },
+  { jenis: "Pasir", jumlahTruck: 10, hargaBeli: 235000, hargaJual: 260000, kubikPerTruck: 25 }
+];
 
 const TruckingDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-
-  // Data dari tabel
-  const modalData = [
-    { jenis: "Batu Split", modal: 385000000, pemasukan: 420000000, keuntungan: 35000000 },
-    { jenis: "Pasir", modal: 411250000, pemasukan: 455000000, keuntungan: 43750000 }
-  ];
-
-  const overviewData = [
-    { kategori: "Modal Kebutuhan", nilai: 796250000 },
-    { kategori: "Pemasukan", nilai: 875000000 },
-    { kategori: "Keuntungan Bersih", nilai: 78750000 }
-  ];
-
-  const profitSharingData = [
-    { name: "Investor", value: 39375000, percentage: 50 },
-    { name: "Pelaksana", value: 39375000, percentage: 50 }
-  ];
-
-  const operasionalData = [
-    { jenis: "Batu Split", jumlahTruck: 10, hargaBeli: 220000, hargaJual: 240000, kubikPerTruck: 25 },
-    { jenis: "Pasir", jumlahTruck: 10, hargaBeli: 235000, hargaJual: 260000, kubikPerTruck: 25 }
-  ];
 
   const [calculatorInputs, setCalculatorInputs] = useState({
     material: '',
     volume: ''
   });
   const [calculatorResult, setCalculatorResult] = useState<number | null>(null);
+
+  const [buyPrice, setBuyPrice] = useState(0);
+  const [sellPrice, setSellPrice] = useState(0);
+  const [profit, setProfit] = useState(0);
+  const [profitPercentage, setProfitPercentage] = useState(0);
+
+  useEffect(() => {
+    if (buyPrice > 0 && sellPrice > 0) {
+      const profitValue = sellPrice - buyPrice;
+      const percentage = (profitValue / buyPrice) * 100;
+      setProfit(profitValue);
+      setProfitPercentage(percentage);
+    } else {
+      setProfit(0);
+      setProfitPercentage(0);
+    }
+  }, [buyPrice, sellPrice]);
 
   const handleCalculatorInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -101,7 +118,8 @@ const TruckingDashboard = () => {
             { id: 'profitability', label: 'Profitabilitas' },
             { id: 'operations', label: 'Operasional' },
             { id: 'profit-sharing', label: 'Bagi Hasil' },
-            { id: 'price-calculator', label: 'Kalkulator Harga' }
+            { id: 'price-calculator', label: 'Kalkulator Harga' },
+            { id: 'profit-calculator', label: 'Kalkulator Keuntungan' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -333,10 +351,10 @@ const TruckingDashboard = () => {
             <h3 className="text-xl font-semibold mb-4">Kalkulator Harga Material</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="materialType" className="block text-sm font-medium text-gray-700">Jenis Material</label>
+                <label htmlFor="material" className="block text-sm font-medium text-gray-700">Jenis Material</label>
                 <select
-                  id="materialType"
-                  name="materialType"
+                  id="material"
+                  name="material"
                   className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                   value={calculatorInputs.material}
                   onChange={handleCalculatorInputChange}
@@ -377,6 +395,50 @@ const TruckingDashboard = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Profit Calculator Tab */}
+        {activeTab === 'profit-calculator' && (
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+                <h3 className="text-xl font-semibold mb-4">Kalkulator Keuntungan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="buyPrice" className="block text-sm font-medium text-gray-700">
+                      Harga Beli
+                    </label>
+                    <input
+                      type="number"
+                      id="buyPrice"
+                      value={buyPrice}
+                      onChange={(e) => setBuyPrice(Number(e.target.value))}
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="sellPrice" className="block text-sm font-medium text-gray-700">
+                      Harga Jual
+                    </label>
+                    <input
+                      type="number"
+                      id="sellPrice"
+                      value={sellPrice}
+                      onChange={(e) => setSellPrice(Number(e.target.value))}
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium text-gray-900">Hasil Perhitungan</h3>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-gray-700">
+                      Keuntungan: <span className="font-semibold text-green-600">{formatCurrency(profit)}</span>
+                    </p>
+                    <p className="text-gray-700">
+                      Persentase Keuntungan: <span className="font-semibold text-green-600">{profitPercentage.toFixed(2)}%</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
         )}
       </div>
     </div>
